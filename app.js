@@ -1,4 +1,4 @@
-import { openRoom, newRoomCode, roomFromUrl } from './db.js?v=2';
+import { openRoom, newRoomCode, roomFromUrl } from './db.js?v=3';
 
 const PEOPLE = [
   { id: 'margot', name: 'Margot' },
@@ -93,7 +93,7 @@ async function start(code) {
       last: {}
     };
 
-    el.querySelector('.start').onclick = () => { unlockAudio(); toggle(p.id); };
+    el.querySelector('.start').onclick = () => { click(!timers[p.id]?.running); toggle(p.id); };
     el.querySelector('.reset').onclick = () => reset(p.id);
     el.querySelector('.sync').onclick = () => sync(p.id, other.id);
     el.querySelector('.gear').onclick = () => openSettings(p);
@@ -143,6 +143,7 @@ async function start(code) {
 
   /* ----- Ajustes ----- */
   const dlg = $('#settings');
+  $('#test-ring').onclick = () => ring();
   function openSettings(p) {
     const t = timers[p.id];
     if (!t) return;
@@ -259,31 +260,74 @@ function unlockAudio() {
 addEventListener('pointerdown', unlockAudio, { once: true });
 addEventListener('keydown', unlockAudio, { once: true });
 
+// Timbre de despertador mecánico: un martillo golpea dos campanas suaves (~16 golpes/s).
 function ring() {
   unlockAudio();
   const ctx = audioCtx;
   if (!ctx) return;
   const out = ctx.createGain();
-  out.gain.value = 0.35;
-  out.connect(ctx.destination);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 3200; lp.Q.value = 0.5;
+  out.connect(lp).connect(ctx.destination);
   const t0 = ctx.currentTime + 0.05;
-  const partials = [[2650, 1], [3980, 0.55], [5420, 0.3]];
-  for (let burst = 0; burst < 3; burst++) {
-    const bs = t0 + burst * 1.15;
-    for (let i = 0; i < 16; i++) {
-      const st = bs + i * 0.05;
-      for (const [f, a] of partials) {
+  const bells = [1318, 1568];                       // dos campanas (Mi6 / Sol6)
+  const partials = [[1, 1], [2.02, 0.22], [2.76, 0.1], [5.4, 0.03]];
+  const BURST = 1.6, GAP = 0.7, BURSTS = 2, RATE = 16;
+  out.gain.setValueAtTime(0.0001, t0);
+  for (let b = 0; b < BURSTS; b++) {
+    const bs = t0 + b * (BURST + GAP);
+    // envolvente suave por ráfaga: entra y sale sin golpes bruscos
+    out.gain.setValueAtTime(0.0001, bs);
+    out.gain.exponentialRampToValueAtTime(0.16, bs + 0.12);
+    out.gain.setValueAtTime(0.16, bs + BURST - 0.25);
+    out.gain.exponentialRampToValueAtTime(0.0001, bs + BURST + 0.5);
+    for (let i = 0; i < BURST * RATE; i++) {
+      const st = bs + i / RATE + (Math.random() - 0.5) * 0.004;
+      const f0 = bells[i % 2];
+      const vel = 0.75 + Math.random() * 0.25;
+      for (const [r, a] of partials) {
         const o = ctx.createOscillator();
         const g = ctx.createGain();
         o.type = 'sine';
-        o.frequency.value = f * (1 + (i % 2 ? 0.004 : -0.004));
+        o.frequency.value = f0 * r;
+        const decay = 0.35 / r;                      // los armónicos altos se apagan antes
         g.gain.setValueAtTime(0.0001, st);
-        g.gain.exponentialRampToValueAtTime(a * 0.5, st + 0.003);
-        g.gain.exponentialRampToValueAtTime(0.0001, st + (i === 15 ? 0.6 : 0.09));
+        g.gain.exponentialRampToValueAtTime(a * vel * 0.3, st + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0001, st + decay);
         o.connect(g).connect(out);
         o.start(st);
-        o.stop(st + 0.65);
+        o.stop(st + decay + 0.02);
       }
     }
   }
+}
+
+// "Clic" suave al empezar / pausar (solo en el ordenador donde se pulsa).
+function click(starting) {
+  unlockAudio();
+  const ctx = audioCtx;
+  if (!ctx) return;
+  const t = ctx.currentTime + 0.01;
+  const len = Math.floor(ctx.sampleRate * 0.03);
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 6);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = starting ? 2600 : 1800; bp.Q.value = 1.2;
+  const g = ctx.createGain();
+  g.gain.value = 0.5;
+  src.connect(bp).connect(g).connect(ctx.destination);
+  src.start(t);
+  const o = ctx.createOscillator();
+  const og = ctx.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(starting ? 1400 : 1000, t);
+  o.frequency.exponentialRampToValueAtTime(starting ? 900 : 650, t + 0.03);
+  og.gain.setValueAtTime(0.0001, t);
+  og.gain.exponentialRampToValueAtTime(0.12, t + 0.002);
+  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+  o.connect(og).connect(ctx.destination);
+  o.start(t); o.stop(t + 0.05);
 }

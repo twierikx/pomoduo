@@ -75,3 +75,12 @@ dialog input { width: 72px; font: inherit; padding: 6px 8px; border: 1px solid #
   .half + .half { border-left: 0; border-top: 1px solid rgba(0, 0, 0, .06); }
   .footer { flex-wrap: wrap; white-space: normal; justify-content: center; width: calc(100% - 32px); border-radius: 12px; }
 }
+.dialog-buttons .spacer { flex: 1; }
+.test-ring { font-size: .875rem; color: var(--muted); }
+
+/* Título */
+.brand { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 18px 8px 12px; background: rgba(255, 255, 255, .7); backdrop-filter: blur(6px); border-radius: 999px; z-index: 2; }
+.brand .logo { display: inline-flex; }
+.brand .logo:empty { display: none; }
+.wordmark { font-size: 1.35rem; font-weight: 700; letter-spacing: .01em; color: var(--text); }
+.wordmark em { font-style: normal; color: var(--focus-ink); }

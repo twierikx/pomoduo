@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pomodúo</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <!-- Pantalla sin sala -->
@@ -24,7 +24,7 @@
           <header>
             <h2 class="name"></h2>
             <button class="icon gear" title="Ajustes" aria-label="Ajustes">
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.5 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="currentColor"><rect x="10.25" y="1.75" width="3.5" height="5" rx="1" transform="rotate(0 12 12)"/><rect x="10.25" y="1.75" width="3.5" height="5" rx="1" transform="rotate(45 12 12)"/><rect x="10.25" y="1.75" width="3.5" height="5" rx="1" transform="rotate(90 12 12)"/><rect x="10.25" y="1.75" width="3.5" height="5" rx="1" transform="rotate(135 12 12)"/><rect x="10.25" y="1.75" width="3.5" height="5" rx="1" transform="rotate(180 12 12)"/><rect x="10.25" y="1.75" width="3.5" height="5" rx="1" transform="rotate(225 12 12)"/><rect x="10.25" y="1.75" width="3.5" height="5" rx="1" transform="rotate(270 12 12)"/><rect x="10.25" y="1.75" width="3.5" height="5" rx="1" transform="rotate(315 12 12)"/><path fill-rule="evenodd" d="M12 4.5a7.5 7.5 0 1 1 0 15a7.5 7.5 0 1 1 0-15zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z"/></g></svg>
             </button>
           </header>
           <nav class="tabs">
@@ -44,6 +44,10 @@
         </div>
       </section>
     </template>
+    <header class="brand" aria-label="Pomodúo">
+      <span class="logo"><svg viewBox="0 0 32 24" width="37" height="28" aria-hidden="true"><circle cx="11.5" cy="12" r="8" fill="#e0566a"/><circle cx="20.5" cy="12" r="8" fill="#4fa86a" style="mix-blend-mode:multiply"/><g stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none"><path d="M11.5 12V7.2M11.5 12H8.2"/><path d="M20.5 12V7.2M20.5 12h3.3"/></g></svg></span>
+      <span class="wordmark">Pomodúo</span>
+    </header>
     <div id="halves" class="halves"></div>
 
     <footer class="footer">
@@ -69,12 +73,14 @@
       <label>Pausa larga (min) <input name="long" type="number" min="1" max="120" required></label>
       <label>Pausa larga cada (pomodoros) <input name="interval" type="number" min="1" max="12" required></label>
       <div class="dialog-buttons">
+        <button type="button" id="test-ring" class="link test-ring">Probar alarma</button>
+        <span class="spacer"></span>
         <button value="cancel" formnovalidate class="link">Cancelar</button>
         <button value="ok" class="primary">Guardar</button>
       </div>
     </form>
   </dialog>
 
-  <script type="module" src="app.js?v=2"></script>
+  <script type="module" src="app.js?v=3"></script>
 </body>
 </html>
