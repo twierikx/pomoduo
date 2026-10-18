@@ -1,5 +1,5 @@
 // Capa mínima de datos: Firebase Realtime Database, o localStorage como modo local.
-import { FIREBASE_CONFIG } from './config.js';
+import { FIREBASE_CONFIG } from './config.js?v=2';
 
 const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
 

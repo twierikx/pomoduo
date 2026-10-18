@@ -1,4 +1,4 @@
-import { openRoom, newRoomCode, roomFromUrl } from './db.js';
+import { openRoom, newRoomCode, roomFromUrl } from './db.js?v=2';
 
 const PEOPLE = [
   { id: 'margot', name: 'Margot' },
