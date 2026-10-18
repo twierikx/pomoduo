@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pomodúo</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Pantalla sin sala -->
+  <main id="lobby" class="lobby" hidden>
+    <h1>Pomodúo</h1>
+    <p>El pomodoro para dos.</p>
+    <button id="create-room" class="primary">Crear sala nueva</button>
+    <p class="muted small">Se crea un enlace secreto. Guárdalo en favoritos y compártelo con la otra persona: quien tenga el enlace puede ver y controlar los temporizadores.</p>
+  </main>
+
+  <!-- Temporizadores -->
+  <main id="app" class="app" hidden>
+    <template id="timer-tpl">
+      <section class="half idle">
+        <div class="card">
+          <header>
+            <h2 class="name"></h2>
+            <button class="icon gear" title="Ajustes" aria-label="Ajustes">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.5 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+            </button>
+          </header>
+          <nav class="tabs">
+            <button data-phase="focus">Enfoque</button>
+            <button data-phase="short">Pausa corta</button>
+            <button data-phase="long">Pausa larga</button>
+          </nav>
+          <div class="time" aria-live="off">25:00</div>
+          <div class="controls">
+            <button class="start">EMPEZAR</button>
+            <button class="icon reset" title="Reiniciar" aria-label="Reiniciar">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>
+            </button>
+          </div>
+          <div class="count"></div>
+          <button class="sync link"></button>
+        </div>
+      </section>
+    </template>
+    <div id="halves" class="halves"></div>
+
+    <footer class="footer">
+      <a id="stats-link" href="stats.html">Estadísticas</a>
+      <span class="sep">·</span>
+      <label>Este ordenador es de
+        <select id="me">
+          <option value="">nadie</option>
+          <option value="margot">Margot</option>
+          <option value="thomas">Thomas</option>
+        </select>
+      </label>
+      <span id="notif-wrap"><span class="sep">·</span> <button id="notif" class="link">Activar avisos</button></span>
+      <span id="status" class="status"></span>
+    </footer>
+  </main>
+
+  <dialog id="settings">
+    <form method="dialog">
+      <h3>Ajustes de <span class="who"></span></h3>
+      <label>Enfoque (min) <input name="focus" type="number" min="1" max="180" required></label>
+      <label>Pausa corta (min) <input name="short" type="number" min="1" max="60" required></label>
+      <label>Pausa larga (min) <input name="long" type="number" min="1" max="120" required></label>
+      <label>Pausa larga cada (pomodoros) <input name="interval" type="number" min="1" max="12" required></label>
+      <div class="dialog-buttons">
+        <button value="cancel" formnovalidate class="link">Cancelar</button>
+        <button value="ok" class="primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

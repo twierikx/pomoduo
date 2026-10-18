@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estadísticas | Pomodúo</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="stats.css">
+</head>
+<body class="stats-page">
+  <main class="stats">
+    <header class="stats-head">
+      <h1>Estadísticas</h1>
+      <a id="back" href="index.html">Volver a los temporizadores</a>
+    </header>
+
+    <section class="tiles" id="tiles"></section>
+
+    <section class="chart-block">
+      <div class="chart-top">
+        <div class="seg" role="tablist">
+          <button data-view="days" class="active">Últimos 7 días</button>
+          <button data-view="weeks">Últimas 8 semanas</button>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="chart-wrap">
+        <svg id="chart" role="img" aria-label="Horas de enfoque por persona"></svg>
+        <div id="tip" class="tip" hidden></div>
+      </div>
+      <details>
+        <summary>Ver tabla</summary>
+        <table id="table"></table>
+      </details>
+    </section>
+    <p id="msg" class="muted small"></p>
+  </main>
+  <script type="module" src="stats.js"></script>
+</body>
+</html>
