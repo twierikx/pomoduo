@@ -184,13 +184,17 @@ async function start(code) {
       if (!cur || !cur.running || cur.endsAt !== endsAt) return; // ya lo hizo otro dispositivo
       ended = { phase: cur.phase, min: cur.settings.focus };
       const today = localDate(endsAt);
+      const iv = cur.settings.interval;
       if (cur.phase === 'focus') {
-        if (cur.todayDate !== today) { cur.today = 0; cur.todayDate = today; }
+        // Nuevo día: empezar la serie de nuevo
+        if (cur.todayDate !== today) { cur.today = 0; cur.todayDate = today; cur.cycle = 0; }
         cur.today += 1;
-        cur.cycle = (cur.cycle || 0) + 1;
-        cur.phase = cur.cycle >= cur.settings.interval ? 'long' : 'short';
+        // Siempre dentro de 1..intervalo (repara también valores antiguos fuera de rango)
+        cur.cycle = ((cur.cycle || 0) % iv) + 1;
+        cur.phase = cur.cycle >= iv ? 'long' : 'short';
       } else {
-        if (cur.phase === 'long') cur.cycle = 0;
+        // Tras cualquier pausa que cierra la serie (larga, o corta elegida a mano), volver a 0
+        if (cur.phase === 'long' || (cur.cycle || 0) >= iv) cur.cycle = 0;
         cur.phase = 'focus';
       }
       cur.running = false; cur.endsAt = null; cur.remaining = dur(cur);
@@ -216,7 +220,8 @@ async function start(code) {
     const txt = `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}`;
     const cls = !t.running ? 'idle' : t.phase === 'focus' ? 'focus' : 'break';
     const today = t.todayDate === localDate() ? t.today : 0;
-    const n = t.phase === 'focus' ? (t.cycle || 0) + 1 : Math.max(1, t.cycle || 0);
+    const iv = t.settings.interval, c = t.todayDate === localDate() ? (t.cycle || 0) : 0;
+    const n = t.phase === 'focus' ? (c % iv) + 1 : ((Math.max(1, c) - 1) % iv) + 1;
     const countHtml = `#${n} de ${t.settings.interval} <span class="today">· ${today} hoy</span>`;
     const L = v.last;
     if (L.txt !== txt) v.time.textContent = L.txt = txt;
