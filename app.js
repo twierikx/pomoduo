@@ -1,4 +1,5 @@
 import { openRoom, newRoomCode, roomFromUrl } from './db.js?v=3';
+import { startBirthday } from './birthday.js?v=4';
 
 const PEOPLE = [
   { id: 'margot', name: 'Margot' },
@@ -100,6 +101,7 @@ async function start(code) {
     views[p.id].tabs.forEach(b => (b.onclick = () => setPhase(p.id, b.dataset.phase)));
 
   }
+  startBirthday(views.margot.el);
 
   const remainingOf = t => (t.running ? Math.max(0, t.endsAt - db.now()) : t.remaining);
   const update = (id, fn) => db.transaction('timers/' + id, cur => {

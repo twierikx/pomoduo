@@ -84,3 +84,15 @@ dialog input { width: 72px; font: inherit; padding: 6px 8px; border: 1px solid #
 .brand .logo:empty { display: none; }
 .wordmark { font-size: 1.35rem; font-weight: 700; letter-spacing: .01em; color: var(--text); }
 .wordmark em { font-style: normal; color: var(--focus-ink); }
+
+/* Cumpleaños (26 de octubre) */
+.half.cumple { position: relative; overflow: hidden; }
+.half.cumple .card { position: relative; z-index: 1; }
+.cumple-layer { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.bunting { position: absolute; top: 0; left: 0; width: 100%; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .08)); }
+.bunting .flag { animation: flutter 3.2s ease-in-out infinite; animation-delay: var(--d); }
+@keyframes flutter { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+.confetti-bits i { position: absolute; opacity: .45; }
+.confetti-fall { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cumple-msg { position: absolute; bottom: calc(100% + 14px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: .95rem; font-weight: 600; color: var(--focus-ink); background: rgba(255, 255, 255, .7); padding: 4px 12px; border-radius: 999px; cursor: pointer; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .bunting .flag { animation: none; } }
