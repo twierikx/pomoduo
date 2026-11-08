@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voor Arjen · 60</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    --paper:#f5efe3; --paper-2:#ece3d1; --ink:#2a2723; --muted:#7d756a;
+    --accent:#c4492f; --accent-2:#e08a3c; --olive:#5f7445; --red:#ff3b30;
+    --serif:"Fraunces", Georgia, "Times New Roman", serif;
+    --sans:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --hand:"Caveat", "Comic Sans MS", cursive;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body.locked{overflow:hidden}
+  #doodles{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.09;background-size:420px 420px}
+  main,#lock{position:relative;z-index:1}
+  h1,h2,h3{font-family:var(--serif);line-height:1.1;margin:0 0 .5em}
+  .hand{font-family:var(--hand)}
+  .hidden{display:none !important}
+
+  /* ---------- Te vroeg ---------- */
+  #dategate{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:rgba(15,13,11,.86);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);text-align:center}
+  #dategate .msg{color:var(--red);font-family:var(--serif);font-weight:900;font-size:clamp(30px,7vw,64px);line-height:1.05;text-shadow:0 0 28px rgba(255,59,48,.35);cursor:default;user-select:none}
+  #dategate .msg span{display:block}
+  #dategate .msg .small{font-size:.55em;font-weight:700;margin-top:.5em}
+  #dategate .count{margin-top:28px;color:rgba(255,255,255,.55);font-family:var(--sans);font-size:15px;letter-spacing:.04em}
+  #dategate .count b{color:rgba(255,255,255,.85);font-variant-numeric:tabular-nums;font-size:22px;display:block;margin-top:4px;letter-spacing:.08em}
+
+  /* ---------- Wachtwoord ---------- */
+  #lock{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .lock-card{width:100%;max-width:460px;background:rgba(255,253,248,.92);border:1px solid rgba(42,39,35,.12);border-radius:22px;padding:34px 28px 28px;text-align:center;box-shadow:0 20px 60px -20px rgba(60,40,20,.35)}
+  .lock-card .big60{font-family:var(--serif);font-weight:900;font-size:110px;line-height:.9;color:var(--accent);letter-spacing:-.04em}
+  .lock-card p{margin:18px 0 22px;font-size:18px}
+  .lock-card form{display:flex;flex-direction:column;gap:10px}
+  .lock-card input{font:inherit;font-size:18px;padding:14px 16px;border-radius:12px;border:1.5px solid rgba(42,39,35,.25);background:#fff;text-align:center;outline:none}
+  .lock-card input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(196,73,47,.15)}
+  .btn{font:inherit;font-weight:600;font-size:17px;padding:14px 22px;border-radius:12px;border:0;background:var(--accent);color:#fff;cursor:pointer;transition:transform .15s, background .15s}
+  .btn:hover{background:#ab3b24}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{background:#c9bfb2;cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--muted);border:1.5px solid rgba(42,39,35,.2)}
+  #pwerr{min-height:1.6em;margin-top:6px;color:var(--accent);font-weight:500}
+  .shake{animation:shake .4s}
+  @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+  /* ---------- Voorwaarden ---------- */
+  #terms{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:16px;
+    background:rgba(30,26,22,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .terms-card{width:100%;max-width:640px;max-height:calc(100dvh - 32px);display:flex;flex-direction:column;background:#fffdf8;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);animation:pop .35s ease-out}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+  .terms-head{padding:24px 24px 14px;border-bottom:1px solid rgba(42,39,35,.1)}
+  .terms-head h2{font-size:34px;color:var(--accent);margin-bottom:6px}
+  .terms-head p{margin:0;color:var(--muted)}
+  .terms-body{overflow-y:auto;padding:18px 24px;font-family:var(--serif);font-size:15.5px;line-height:1.55}
+  .terms-body h3{font-size:17px;margin:1.3em 0 .4em;font-weight:700}
+  .terms-body h3:first-of-type{margin-top:.6em}
+  .terms-body .doc-title{text-align:center;font-weight:900;font-size:19px;letter-spacing:.02em;text-transform:uppercase;margin:4px 0 2px}
+  .terms-body .doc-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:10px;font-family:var(--sans)}
+  .terms-body ol{margin:0;padding-left:1.6em}
+  .terms-body ol.alpha{list-style:lower-alpha}
+  .terms-body li{margin:.25em 0}
+  .terms-foot{padding:16px 24px 20px;border-top:1px solid rgba(42,39,35,.1);display:flex;flex-direction:column;gap:12px}
+  .terms-foot label{display:flex;gap:10px;align-items:flex-start;font-size:15px;cursor:pointer}
+  .terms-foot input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent);flex:none}
+  .terms-btns{display:flex;gap:10px;flex-wrap:wrap}
+  .terms-btns .btn{flex:1 1 160px}
+
+  /* ---------- Inhoud ---------- */
+  main{max-width:1060px;margin:0 auto;padding:0 20px 80px}
+  section{padding:70px 0 20px}
+  .eyebrow{font-family:var(--sans);text-transform:uppercase;letter-spacing:.14em;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px}
+  .hero{min-height:88vh;min-height:88dvh;display:flex;flex-direction:column;justify-content:center;text-align:center;padding-top:40px}
+  .hero h1{font-size:clamp(40px,8vw,84px);font-weight:900;letter-spacing:-.02em}
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero p{font-size:clamp(17px,2.4vw,21px);max-width:620px;margin:0 auto;color:#4a453e}
+  .scroll-hint{margin-top:44px;font-family:var(--hand);font-size:26px;color:var(--muted)}
+  .scroll-hint span{display:inline-block;animation:bob 2.2s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(6px)}}
+
+  .split{display:grid;grid-template-columns:1fr;gap:34px;align-items:center}
+  @media (min-width:820px){.split{grid-template-columns:1fr 1.1fr;gap:56px}.split.rev > :first-child{order:2}}
+  .prose h2{font-size:clamp(30px,4.6vw,44px)}
+  .prose p{margin:0 0 1em}
+  .placeholder{background:repeating-linear-gradient(-45deg,rgba(224,138,60,.10) 0 10px,rgba(224,138,60,.04) 10px 20px);border:1.5px dashed var(--accent-2);border-radius:12px;padding:14px 16px;color:#8a5a2a;font-style:italic}
+
+  /* Polaroids */
+  .polaroid{background:#fff;padding:12px 12px 14px;box-shadow:0 14px 34px -12px rgba(50,35,20,.45);border-radius:3px;max-width:360px;margin:0 auto;transform:rotate(var(--r,-3deg));transition:transform .3s}
+  .polaroid:hover{transform:rotate(0) scale(1.02)}
+  .polaroid .ph{aspect-ratio:4/5;background:var(--paper-2);overflow:hidden;position:relative}
+  .polaroid img{width:100%;height:100%;object-fit:cover;display:block}
+  .polaroid .ph.missing::after{content:"📷";opacity:.35;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--hand);font-size:26px;text-align:center;padding:10px}
+  .polaroid{padding-bottom:40px}
+  .polaroid{width:100%;max-width:min(360px,84vw)}
+  .polaroid.small{width:min(230px,42vw);max-width:230px}
+  .polaroid.wide .ph{aspect-ratio:4/3}
+  .strip{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:30px 0 0}
+  .strip .polaroid{margin:0}
+
+  /* 60 vs 30 */
+  .numbers{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;text-align:center;margin:20px 0 26px}
+  .num{font-family:var(--serif);font-weight:900;font-size:clamp(76px,16vw,150px);line-height:.9;color:var(--accent);font-variant-numeric:tabular-nums}
+  .num.b{color:var(--olive)}
+  .num-label{font-size:15px;color:var(--muted);margin-top:8px}
+  .vs{font-family:var(--hand);font-size:34px;color:var(--muted)}
+  .joke{text-align:center;font-size:clamp(18px,2.6vw,22px);max-width:640px;margin:0 auto}
+  .joke strong{color:var(--accent)}
+
+  /* Onthulling */
+  .reveal{text-align:center}
+  .envelope{max-width:560px;margin:26px auto 0;background:#fffdf8;border:1px solid rgba(42,39,35,.12);border-radius:20px;padding:30px 24px;box-shadow:0 20px 50px -24px rgba(60,40,20,.4)}
+  .gift{display:none;animation:pop .45s ease-out}
+  .gift.open{display:block}
+  .gift .icon{font-size:64px;line-height:1}
+  .gift h3{font-size:clamp(28px,5vw,40px);margin:12px 0}
+  .gift ul{list-style:none;padding:0;margin:16px 0 0;text-align:left;display:inline-block}
+  .gift li{margin:.35em 0;padding-left:30px;position:relative}
+  .gift li::before{content:attr(data-i);position:absolute;left:0}
+
+  /* Kaart */
+  #map{height:440px;border-radius:18px;overflow:hidden;border:1px solid rgba(42,39,35,.15);box-shadow:0 18px 40px -22px rgba(50,35,20,.45);background:var(--paper-2)}
+  @media (max-width:600px){#map{height:360px}}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;margin:18px 0 6px;font-size:14px;color:var(--muted)}
+  .routes{display:grid;grid-template-columns:1fr;gap:14px;margin-top:22px}
+  @media (min-width:640px){.routes{grid-template-columns:1fr 1fr}}
+  @media (min-width:980px){.routes{grid-template-columns:repeat(3,1fr)}}
+  .route{background:#fffdf8;border:1px solid rgba(42,39,35,.12);border-radius:16px;padding:16px 18px;cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .15s;text-align:left;font:inherit;color:inherit}
+  .route:hover,.route.active{transform:translateY(-2px);box-shadow:0 12px 30px -16px rgba(60,40,20,.45);border-color:var(--accent)}
+  .route .rn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:14px;margin-right:8px;vertical-align:middle}
+  .route h4{display:inline;font-family:var(--serif);font-size:19px;vertical-align:middle}
+  .route p{margin:8px 0 10px;font-size:15px;color:#4a453e}
+  .rating{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;color:var(--muted);margin:3px 0}
+  .rating .em{letter-spacing:1px;white-space:nowrap;font-size:16px}
+  .rating .em .off{opacity:.18;filter:grayscale(1)}
+  .book{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .pin{width:34px;height:34px;border-radius:50% 50% 50% 0;background:var(--accent);transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.3);border:2px solid #fff}
+  .pin span{transform:rotate(45deg);color:#fff;font-weight:700;font-size:14px;font-family:var(--sans)}
+  .pin.home{background:var(--olive)}
+  .leaflet-popup-content{margin:14px 16px;font-family:var(--sans);font-size:14px;line-height:1.45}
+  .leaflet-popup-content h4{font-family:var(--serif);font-size:18px;margin:0 0 6px}
+  .leaflet-popup-content p{margin:0 0 8px}
+  .toggle{display:flex;width:max-content;margin:0 auto;background:var(--paper-2);border-radius:999px;padding:4px;gap:4px;border:1px solid rgba(42,39,35,.1)}
+  .toggle button{font:inherit;font-weight:600;font-size:15px;border:0;background:transparent;color:var(--muted);padding:9px 20px;border-radius:999px;cursor:pointer;transition:background .2s,color .2s}
+  .toggle button.on{background:#fff;color:var(--ink);box-shadow:0 2px 8px -2px rgba(60,40,20,.3)}
+  .mapnote{text-align:center;font-size:13.5px;color:var(--muted);margin-top:10px}
+  .leaflet-popup-content .book{margin-top:6px}
+  .disclaimer{text-align:center;font-size:13.5px;color:var(--muted);margin-top:18px}
+
+  footer{text-align:center;padding:70px 20px 40px;position:relative;z-index:1}
+  footer .sig{font-family:var(--hand);font-size:clamp(36px,6vw,54px);line-height:1.1}
+  footer p{color:var(--muted)}
+
+  canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:95}
+  .blurred{filter:blur(4px)}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body class="locked">
+
+<div id="doodles" aria-hidden="true"></div>
+
+<!-- 1. Te vroeg -->
+<div id="dategate" class="hidden" role="alertdialog" aria-live="polite">
+  <div>
+    <div class="msg" id="gatemsg">
+      <span>Hey, wat doe je hier?</span>
+      <span class="small">Je bent nog helemaal niet jarig.<br>Kom morgen maar terug.</span>
+    </div>
+    <div class="count">Nog even geduld<b id="countdown">--:--:--</b></div>
+  </div>
+</div>
+
+<!-- 2. Wachtwoord -->
+<div id="lock">
+  <div class="lock-card" id="lockcard">
+    <div class="big60">60</div>
+    <p>Er gaan geruchten dat je vandaag de <strong>eerbiedwaardige leeftijd van 60</strong> hebt bereikt. Voer het magische wachtwoord in om je cadeau te onthullen.</p>
+    <form id="pwform" autocomplete="off">
+      <input id="pw" type="text" placeholder="Magisch wachtwoord" aria-label="Wachtwoord" autocapitalize="off" spellcheck="false">
+      <button class="btn" type="submit">Onthul</button>
+    </form>
+    <div id="pwerr" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- 3. Voorwaarden -->
+<div id="terms" class="hidden" role="dialog" aria-modal="true" aria-labelledby="termstitle">
+  <div class="terms-card">
+    <div class="terms-head">
+      <h2 id="termstitle">Oh shit.</h2>
+      <p>We zijn vergeten je akkoord te vragen op onze algemene voorwaarden.</p>
+    </div>
+    <div class="terms-body">
+      <div class="doc-title">Algemene Voorwaarden<br>Cadeau-overeenkomst „Zestig”</div>
+      <div class="doc-sub">Versie 1.0 · vastgesteld te Madrid, november 2026</div>
+
+      <h3>Artikel 1 – Definities</h3>
+      <p>In deze voorwaarden wordt verstaan onder:</p>
+      <ol class="alpha">
+        <li><em>Cadeaugever</em>: de heer Thomas Wierikx;</li>
+        <li><em>Cadeaunemer</em>: de heer Arjen Wierikx, ter gelegenheid van diens zestigste verjaardag;</li>
+        <li><em>Cadeau</em>: een meerdaagse fietstocht in Spanje, van ten hoogste drie dagen, zoals nader omschreven in artikel 2;</li>
+        <li><em>Deelnemende partijen</em>: Cadeaugever, Cadeaunemer en door Cadeaunemer eventueel aangezochte gasten.</li>
+      </ol>
+
+      <h3>Artikel 2 – Aard van het Cadeau en omwisselclausule</h3>
+      <ol>
+        <li>Het Cadeau is ontworpen als fietstocht, ter ere van de fietsvakanties die Cadeaugever in zijn jeugd van Cadeaunemer mocht ontvangen.</li>
+        <li>Cadeaunemer is gerechtigd, in overleg met Cadeaugever, het Cadeau om te zetten in een meerdaagse wandeltocht, indien hij dit wenst. Het is tenslotte zijn verjaardag.</li>
+        <li>In dat geval is artikel 8 van toepassing.</li>
+      </ol>
+
+      <h3>Artikel 3 – Ondergrond en fietstype</h3>
+      <ol>
+        <li>Alle routes van het Cadeau zijn berijdbaar op een gravelbike of racefiets. Mountainbiken is in geen enkel geval vereist.</li>
+        <li>Deze bepaling strekt tot waarborging van de veiligheid van alle Deelnemende partijen en tot beperking van het risico op hersenschuddingen.</li>
+        <li>(Niet dat er enige ervaring bestaat waarop deze regel is gebaseerd.)</li>
+      </ol>
+
+      <h3>Artikel 4 – Weersomstandigheden</h3>
+      <ol>
+        <li>Cadeaugever is in geen enkel geval, noch geheel noch gedeeltelijk, aansprakelijk voor tegenvallende weersomstandigheden, waaronder begrepen regen, wind, mist, kou en andere vormen van meteorologisch ongemak.</li>
+        <li>Partijen erkennen dat de locatie van het Cadeau de kans op slechte weersomstandigheden aanzienlijk verkleint ten opzichte van het land van verblijf van Cadeaunemer. Een verkleinde kans is evenwel niet gelijk te stellen aan uitsluiting.</li>
+      </ol>
+
+      <h3>Artikel 5 – Gasten en kosten</h3>
+      <ol>
+        <li>Het staat Cadeaunemer vrij een ieder, één of meer gasten naar eigen keuze, uit te nodigen deel te nemen aan het Cadeau.</li>
+        <li>De financiële kosten van deze gasten komen niet zonder meer voor rekening van Cadeaugever.</li>
+        <li>Ondanks het feit dat Cadeaugever gedurende vele jaren financieel is onderhouden door Cadeaunemer, en ondanks het feit dat Cadeaugever thans (onder meer dankzij een arbeidsongeschiktheidsuitkering naar aanleiding van een onbetwist dom mountainbikeongeluk) over een prima salaris beschikt, kan Cadeaugever nog niet worden aangemerkt als Sinterklaas.</li>
+      </ol>
+
+      <h3>Artikel 6 – Stemming en klachtenpot</h3>
+      <ol>
+        <li>Gedurende de gehele tocht heerst een positieve stemming.</li>
+        <li>Iedere Deelnemende partij is gehouden bij elke klacht €&nbsp;1 te storten in de gezamenlijke klachtenpot.</li>
+        <li>De inhoud van de klachtenpot wordt na afloop van de tocht aangewend als tractatie voor alle Deelnemende partijen.</li>
+      </ol>
+
+      <h3>Artikel 7 – Uitrusting, fiets en gadgets</h3>
+      <ol>
+        <li>Cadeaugever draagt zorg voor een fiets en de noodzakelijke fietsvakantie-uitrusting, zodat Cadeaunemer zich hierover geen zorgen hoeft te maken.</li>
+        <li>Cadeaunemer brengt een correcte houding mee, alsmede alle toepasselijke gadgets.</li>
+        <li>Cadeaunemer erkent in het bezit te zijn van een groot aantal gadgets die zich uitstekend lenen voor avonturen.</li>
+        <li>Cadeaugever gaat ervan uit dat Cadeaunemer alle geschikt bevonden gadgets zal meenemen, teneinde het avontuur naar een hoger niveau te tillen.</li>
+      </ol>
+
+      <h3>Artikel 8 – Wandelschoeisel <span style="font-weight:400;font-size:.85em">(uitsluitend van toepassing bij omzetting naar een wandeltocht)</span></h3>
+      <ol>
+        <li>Iedere Deelnemende partij draagt zorg voor het meenemen van eigen schoeisel.</li>
+        <li>Indien een partij niet beschikt over geschikt schoeisel, dient te worden onderzocht of de schoenen van opa nog beschikbaar zijn.</li>
+        <li>Partijen erkennen dat Meindl-wandelschoenen, bij wijze van spreken of uiterst letterlijk, kunnen worden overgedragen aan kleinkinderen.</li>
+      </ol>
+
+      <h3>Artikel 9 – Fotografie</h3>
+      <ol>
+        <li>Cadeaugever is te allen tijde bevoegd delen van het avontuur vast te leggen met zijn iets te grote en iets te zware camera.</li>
+        <li>Cadeaunemer is in geen enkel geval gerechtigd hierover klachten in te dienen.</li>
+        <li>Bij overtreding van lid 2 treedt artikel 6 in werking en wordt de klachtenpot verder gevuld.</li>
+      </ol>
+
+      <h3>Artikel 10 – Bagage en wijn</h3>
+      <ol>
+        <li>Partijen zijn zich ervan bewust dat het bij dergelijke avonturen van belang is lichtgewicht bepakt te gaan.</li>
+        <li>Dit laat onverlet dat het meenemen van een fles Rioja Crianza, oogstjaar 2015, tot de opties behoort. Integendeel.</li>
+        <li>Deze fles kan deel uitmaken van de paklijst, in het bijzonder indien wordt gekozen voor de meer zelfvoorzienende opties.</li>
+        <li>De fles wordt gekozen door Cadeaugever, bij voorkeur een Viña Alberdi Crianza van La Rioja Alta.</li>
+      </ol>
+    </div>
+    <div class="terms-foot">
+      <label><input type="checkbox" id="agreecheck"> Ik heb bovenstaande voorwaarden volledig gelezen en begrepen (echt waar).</label>
+      <div class="terms-btns">
+        <button class="btn ghost" id="decline" type="button">Niet akkoord</button>
+        <button class="btn" id="accept" type="button" disabled>Ik ga akkoord</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Het cadeau -->
+<main id="content" class="hidden">
+
+  <section class="hero">
+    <div class="eyebrow">9 november 2026</div>
+    <h1>Welkom bij je<br><em>verjaardagscadeau</em>, Arjen!</h1>
+    <p>Gefeliciteerd met je 60e. Je hebt zojuist rechtsgeldig akkoord gegeven op onze voorwaarden, dus er is geen weg meer terug.</p>
+    <div class="scroll-hint">scroll maar door <span>↓</span></div>
+  </section>
+
+  <section>
+    <div class="split">
+      <figure class="polaroid wide" style="--r:-2.5deg">
+        <div class="ph"><img src="fotos/eindhoven.jpg" alt=""></div>
+      </figure>
+      <div class="prose">
+        <div class="eyebrow">Een mijlpaal</div>
+        <h2>Ja papa, het is zover. Eindelijk.</h2>
+        <p>Ik word bijna 30 en jij bent inmiddels 60. Daarmee is het mij eindelijk gelukt om half zo oud te worden als jij, en dat is voor ons allebei een mijlpaal.</p>
+        <p>Dit jaar bereik jij namelijk het punt waarop je langer wél vader bent geweest dan níét.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="numbers">
+      <div><div class="num" data-to="60">0</div><div class="num-label">jaar oud</div></div>
+      <div class="vs">÷ 2 =</div>
+      <div><div class="num b" data-to="30">0</div><div class="num-label">jaar vader (bijna)</div></div>
+    </div>
+    <div class="strip">
+      <figure class="polaroid small" style="--r:-4deg">
+        <div class="ph"><img src="fotos/jena.jpg" alt=""></div>
+      </figure>
+      <figure class="polaroid small" style="--r:3deg">
+        <div class="ph"><img src="fotos/monschau.jpg" alt=""></div>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="split rev">
+      <figure class="polaroid" style="--r:3deg">
+        <div class="ph"><img src="fotos/winterswijk.jpg" alt=""></div>
+      </figure>
+      <div class="prose">
+        <div class="eyebrow">Terugkijken</div>
+        <h2>Dat vraagt om een uniek cadeau</h2>
+        <p>Ik kan dan ook niet anders dan terugkijken op de mooiste momenten die wij als vader en zoon hebben beleefd. En daar springen de fietsvakanties met kop en schouders bovenuit.</p>
+        <p>Nu ik eindelijk de helft van jouw leeftijd heb bereikt, voelt het als het perfecte moment om jou een keer mee te nemen. Het lijkt me ontzettend leuk om met z'n tweeën op fietsvakantie te gaan. En dan bij mij in de buurt.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">En dan nu</div>
+    <h2 style="font-size:clamp(30px,4.6vw,44px)">Je cadeau</h2>
+    <div class="envelope">
+      <div id="prereveal">
+        <p style="margin-top:0">Ben je er klaar voor?</p>
+        <button class="btn" id="revealbtn" type="button">🎁 Onthul je cadeau</button>
+      </div>
+      <div class="gift" id="gift">
+        <div class="icon">🚴‍♂️🚴‍♂️</div>
+        <h3>Een fietsvakantie in Spanje, met z'n tweeën</h3>
+        <p>Dit is jouw verjaardagscadeau. Ik beloof je dat ik alles regel. Fietsvakantiespullen hoef je niet mee te nemen, dat wordt hier geregeld. En er staat hier een fiets voor je klaar.</p>
+        <p>Twijfels over de verdere invulling van dit cadeau? Lees dan vooral nog eens goed de voorwaarden door.</p>
+        <button class="btn ghost" id="rereadterms" type="button">📜 Voorwaarden nog eens lezen</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="kaart">
+    <div class="eyebrow" style="text-align:center">Kies je route</div>
+    <h2 style="text-align:center;font-size:clamp(30px,4.6vw,44px)">Vijf voorstellen</h2>
+    <p style="text-align:center;max-width:620px;margin:0 auto 22px;color:#4a453e">Alle routes komen uit mijn Spaanse fietsboek. Wissel tussen kaart en lijst, en tik op een route voor de details.</p>
+    <div class="toggle" role="tablist" aria-label="Weergave">
+      <button type="button" role="tab" id="tab-map" class="on" aria-selected="true">🗺️ Kaart</button>
+      <button type="button" role="tab" id="tab-list" aria-selected="false">☰ Lijst</button>
+    </div>
+    <div class="legend">
+      <span>⭕ Circulariteit</span><span>👴 Geschikt voor senioren</span><span>🚴 Wielrenner-gehalte</span>
+    </div>
+    <div id="view-map">
+      <div id="map"></div>
+      <div class="mapnote" id="mapnote">Tik op een speld voor de details.</div>
+    </div>
+    <div id="view-list" class="hidden">
+      <div class="routes" id="routes"></div>
+    </div>
+    <div class="strip">
+      <figure class="polaroid small" style="--r:-3deg">
+        <div class="ph"><img src="fotos/papa-met-koe.jpg" alt=""></div>
+      </figure>
+    </div>
+    <p class="disclaimer">Beoordelingen zijn volstrekt onwetenschappelijk en niet peer-reviewed. Andere wensen? Neem contact op met de Cadeaugever.</p>
+  </section>
+
+</main>
+
+
+<footer id="foot" class="hidden">
+  <div class="sig">Gefeliciteerd, papa.</div>
+  <p>Liefs, Thomas · bel me maar 📞</p>
+</footer>
+
+<canvas id="confetti"></canvas>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Instellingen ---------- */
+  var BIRTHDAY = new Date(2026, 10, 9, 0, 0, 0); // 9 november 2026, 00:00 lokale tijd
+  var PW_HASH = 807426807;                        // "the tables have turned"
+  var TERMS_DELAY = 5000;
+  var params = location.search + location.hash;
+  var PREVIEW = /thomas-kijkt-mee/i.test(params); // geheime voorbeeldlink: .../papa60/#thomas-kijkt-mee
+
+  var store = {
+    get: function(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+    set: function(k,v){ if (PREVIEW) return; try { localStorage.setItem(k,v); } catch(e){} }
+  };
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ---------- Doodle-achtergrond ---------- */
+  var s = 'fill="none" stroke="#2a2723" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"';
+  var doodle =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 420 420">' +
+    // bergen
+    '<g ' + s + ' transform="translate(18,30)"><path d="M0 60 L32 14 L48 36 L64 6 L100 60 Z"/><path d="M56 18 L64 6 L72 18"/></g>' +
+    // fiets
+    '<g ' + s + ' transform="translate(250,40)"><circle cx="18" cy="40" r="16"/><circle cx="82" cy="40" r="16"/><path d="M18 40 L40 12 L68 12 L82 40 M40 12 L52 40 L18 40 M52 40 L68 12 M36 6 L46 6 M66 4 L74 4 L68 12"/></g>' +
+    // 60
+    '<text x="150" y="120" font-family="Georgia,serif" font-weight="900" font-size="46" fill="#2a2723" transform="rotate(-12 170 105)">60</text>' +
+    // zonnepaneel
+    '<g ' + s + ' transform="translate(30,150)"><path d="M10 0 L80 0 L70 40 L0 40 Z M33 0 L23 40 M57 0 L47 40 M5 20 L75 20 M35 40 L35 56 M20 56 L50 56"/></g>' +
+    // zon
+    '<g ' + s + ' transform="translate(330,160)"><circle cx="20" cy="20" r="10"/><path d="M20 0 V4 M20 36 V40 M0 20 H4 M36 20 H40 M6 6 L9 9 M31 31 L34 34 M34 6 L31 9 M9 31 L6 34"/></g>' +
+    // bliksem
+    '<g ' + s + ' transform="translate(200,170)"><path d="M18 0 L4 26 L16 26 L8 50 L30 18 L18 18 L26 0 Z"/></g>' +
+    // camper
+    '<g ' + s + ' transform="translate(130,250)"><path d="M4 44 L4 14 Q4 6 12 6 L76 6 Q90 6 96 22 L100 30 L100 44 Z M78 6 L86 26 L100 30 M14 16 H34 V28 H14 Z M42 16 H62 V28 H42 Z M30 0 H70 V6"/><circle cx="24" cy="46" r="7"/><circle cx="80" cy="46" r="7"/></g>' +
+    // wandelaar
+    '<g ' + s + ' transform="translate(30,250)"><circle cx="20" cy="6" r="5"/><path d="M20 12 L18 32 L10 50 M18 32 L28 50 M19 18 L8 28 M19 18 L30 26 M22 14 L30 14 L30 30 L22 30 M36 10 L32 50"/></g>' +
+    // vrachtwagen + doos
+    '<g ' + s + ' transform="translate(275,265)"><path d="M0 8 H60 V44 H0 Z M60 20 H82 L94 32 V44 H60 M66 24 H80 L88 32 H66 Z"/><circle cx="16" cy="46" r="6"/><circle cx="78" cy="46" r="6"/></g>' +
+    '<g ' + s + ' transform="translate(352,350)"><path d="M0 12 L22 0 L44 12 L22 24 Z M0 12 V38 L22 50 L44 38 V12 M22 24 V50 M11 6 L33 18"/></g>' +
+    // kleine 60
+    '<text x="70" y="380" font-family="Georgia,serif" font-weight="900" font-size="30" fill="#2a2723" transform="rotate(10 85 370)">60</text>' +
+    '<text x="250" y="395" font-family="Georgia,serif" font-weight="700" font-size="22" fill="#2a2723" transform="rotate(-6 260 388)">60</text>' +
+    // stekker
+    '<g ' + s + ' transform="translate(200,345)"><path d="M6 0 V10 M18 0 V10 M0 10 H24 V22 Q24 32 12 32 Q0 32 0 22 Z M12 32 V40 Q12 50 24 50"/></g>' +
+    '</svg>';
+  $("doodles").style.backgroundImage = 'url("data:image/svg+xml,' + encodeURIComponent(doodle) + '")';
+
+  /* ---------- Foto's: nette placeholder als een foto ontbreekt ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll(".polaroid img"), function(img){
+    function miss(){ img.style.display = "none"; img.parentNode.classList.add("missing"); }
+    img.addEventListener("error", miss);
+    if (img.complete && img.naturalWidth === 0) miss();
+  });
+
+  /* ---------- 1. Te vroeg ---------- */
+  var gate = $("dategate"), lock = $("lock");
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  function tick(){
+    var ms = BIRTHDAY - new Date();
+    if (ms <= 0){ openGate(); return; }
+    var t = Math.floor(ms / 1000);
+    $("countdown").textContent = pad(Math.floor(t / 3600)) + ":" + pad(Math.floor(t % 3600 / 60)) + ":" + pad(t % 60);
+  }
+  var timer = null;
+  function openGate(){
+    if (timer) clearInterval(timer);
+    gate.classList.add("hidden");
+    lock.classList.remove("blurred");
+  }
+  if (!PREVIEW && new Date() < BIRTHDAY){
+    gate.classList.remove("hidden");
+    lock.classList.add("blurred");
+    tick(); timer = setInterval(tick, 1000);
+    window.addEventListener("hashchange", function(){ if (/thomas-kijkt-mee/i.test(location.hash)){ PREVIEW = true; openGate(); } });
+  }
+
+  /* ---------- 2. Wachtwoord ---------- */
+  function hash(str){
+    var h = 5381;
+    for (var i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+    return h;
+  }
+  function norm(v){ return v.toLowerCase().replace(/[^a-z ]/g, "").replace(/\s+/g, " ").trim(); }
+  var wrong = [
+    "Hmm, dat is niet het magische woord.",
+    "Nee. Nog steeds niet.",
+    "Tip: bel je zoon. 📞",
+    "Serieus, bel je zoon.",
+    "Hij neemt echt wel op."
+  ];
+  var tries = 0;
+  $("pwform").addEventListener("submit", function(e){
+    e.preventDefault();
+    var v = $("pw").value;
+    if (hash(norm(v)) === PW_HASH){ unlock(true); return; }
+    $("pwerr").textContent = wrong[Math.min(tries, wrong.length - 1)];
+    tries++;
+    var card = $("lockcard");
+    card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+  });
+
+  function unlock(fresh){
+    lock.classList.add("hidden");
+    $("content").classList.remove("hidden");
+    $("foot").classList.remove("hidden");
+    document.body.classList.remove("locked");
+    window.scrollTo(0, 0);
+    store.set("papa60-unlocked", "1");
+    initMap();
+    observeNumbers();
+    if (store.get("papa60-terms") !== "1") setTimeout(showTerms, fresh ? TERMS_DELAY : 600);
+  }
+
+  /* ---------- 3. Voorwaarden ---------- */
+  function showTerms(){
+    $("terms").classList.remove("hidden");
+    $("content").classList.add("blurred");
+    document.body.classList.add("locked");
+  }
+  $("agreecheck").addEventListener("change", function(){ $("accept").disabled = !this.checked; });
+  $("accept").addEventListener("click", function(){
+    $("terms").classList.add("hidden");
+    $("content").classList.remove("blurred");
+    document.body.classList.remove("locked");
+    store.set("papa60-terms", "1");
+    confetti(90);
+  });
+  var declineMsgs = ["Weet je het zeker?", "Echt?", "Deze knop is helaas defect.", "Probeer de andere knop eens."];
+  var declines = 0;
+  $("decline").addEventListener("click", function(){
+    this.textContent = declineMsgs[Math.min(declines, declineMsgs.length - 1)];
+    declines++;
+    if (declines > declineMsgs.length) this.classList.add("hidden");
+  });
+
+  /* ---------- Teller 60 / 30 ---------- */
+  function observeNumbers(){
+    var nums = document.querySelectorAll(".num");
+    function run(el){
+      var to = +el.getAttribute("data-to"), start = null, dur = 1400;
+      function step(ts){
+        if (!start) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    if (!("IntersectionObserver" in window)){ Array.prototype.forEach.call(nums, function(n){ n.textContent = n.getAttribute("data-to"); }); return; }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if (en.isIntersecting){ run(en.target); io.unobserve(en.target); } });
+    }, { threshold: .6 });
+    Array.prototype.forEach.call(nums, function(n){ io.observe(n); });
+  }
+
+  /* ---------- Onthulling ---------- */
+  $("revealbtn").addEventListener("click", function(){
+    $("prereveal").classList.add("hidden");
+    $("gift").classList.add("open");
+    confetti(160);
+  });
+  $("rereadterms").addEventListener("click", showTerms);
+
+  /* ---------- Routes ---------- */
+  var routes = [
+    { n:1, name:"Serranía de Cuenca", lat:40.21, lng:-1.99, circ:4, senior:3, fit:3, book:"route 15, p. 162",
+      txt:"Rotsdoolhoven van kalksteen, dennenbossen en de hangende huizen van Cuenca. Glooiend hoogland, geen Alpenpassen." },
+    { n:2, name:"Bardenas Reales", lat:42.19, lng:-1.50, circ:5, senior:4, fit:2, book:"route 25, p. 232",
+      txt:"Halfwoestijn in Navarra die eruitziet als de maan, of als een western. Breed, open en lekker vlak, deels gravel." },
+    { n:3, name:"Alto Tajo", lat:40.78, lng:-2.08, circ:3, senior:3, fit:3, book:"route 26, p. 240",
+      txt:"Diepe kloven van de jonge Taag, gieren boven je hoofd en bijna geen verkeer. Deels gravel." },
+    { n:4, name:"Urbión y la Demanda", lat:42.05, lng:-2.95, circ:3, senior:2, fit:4, book:"route 10, p. 127",
+      txt:"Het groene noorden: bossen, bergmeren en de Rioja om de hoek. De pittigste optie, en handig voor artikel 10." },
+    { n:5, name:"Planicies de Castilla y León", lat:42.0, lng:-5.2, circ:1, senior:5, fit:1, book:"route 24, p. 226",
+      txt:"Eindeloze graanvlaktes, lemen dorpjes en oude duiventillen. Zo vlak dat iedereen mee kan, ideaal als er gasten meegaan (artikel 5)." }
+  ];
+  function dots(emoji, n){
+    var out = "";
+    for (var i = 1; i <= 5; i++) out += i <= n ? emoji : '<span class="off">' + emoji + '</span>';
+    return out;
+  }
+  function ratingsHTML(r){
+    return '<div class="rating"><span>Circulariteit</span><span class="em">' + dots("⭕", r.circ) + '</span></div>' +
+           '<div class="rating"><span>Geschikt voor senioren</span><span class="em">' + dots("👴", r.senior) + '</span></div>' +
+           '<div class="rating"><span>Wielrenner-gehalte</span><span class="em">' + dots("🚴", r.fit) + '</span></div>';
+  }
+  var list = $("routes"), cards = {};
+  routes.forEach(function(r){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "route";
+    b.innerHTML = '<span class="rn">' + r.n + '</span><h4>' + r.name + '</h4><p>' + r.txt + '</p>' + ratingsHTML(r) +
+                  '<div class="book">📖 Fietsboek, ' + r.book + '</div>';
+    b.addEventListener("click", function(){ focusRoute(r.n); });
+    list.appendChild(b); cards[r.n] = b;
+  });
+
+  /* ---------- Kaart / lijst wisselen ---------- */
+  var map = null, markers = {};
+  function setView(which){
+    var isMap = which === "map";
+    $("view-map").classList.toggle("hidden", !isMap);
+    $("view-list").classList.toggle("hidden", isMap);
+    $("tab-map").classList.toggle("on", isMap);
+    $("tab-list").classList.toggle("on", !isMap);
+    $("tab-map").setAttribute("aria-selected", isMap);
+    $("tab-list").setAttribute("aria-selected", !isMap);
+    if (isMap && map) setTimeout(function(){ map.invalidateSize(); }, 50);
+  }
+  $("tab-map").addEventListener("click", function(){ setView("map"); });
+  $("tab-list").addEventListener("click", function(){ setView("list"); });
+
+  function setActive(n){
+    Object.keys(cards).forEach(function(k){ cards[k].classList.toggle("active", +k === n); });
+  }
+  function focusRoute(n){
+    setActive(n);
+    if (!map) return;
+    setView("map");
+    var r = routes[n - 1];
+    $("map").scrollIntoView({ behavior:"smooth", block:"center" });
+    map.flyTo([r.lat, r.lng], 8, { duration: 0.8 });
+    setTimeout(function(){ markers[n].openPopup(); }, 850);
+  }
+
+  function initMap(){
+    if (map) return;
+    if (typeof L === "undefined"){
+      // kaartbibliotheek niet geladen: toon alleen de lijst
+      document.querySelector(".toggle").classList.add("hidden");
+      setView("list");
+      return;
+    }
+    map = L.map("map", { scrollWheelZoom:false, tap:true }).setView([41.2, -3.2], 6);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+      maxZoom: 13, subdomains: "abcd",
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
+    var bounds = [];
+    routes.forEach(function(r){
+      var icon = L.divIcon({ className:"", html:'<div class="pin"><span>' + r.n + '</span></div>', iconSize:[34,34], iconAnchor:[17,34], popupAnchor:[0,-30] });
+      var m = L.marker([r.lat, r.lng], { icon:icon, title:r.name }).addTo(map)
+        .bindPopup('<h4>' + r.n + '. ' + r.name + '</h4><p>' + r.txt + '</p>' + ratingsHTML(r) +
+                   '<div class="book">📖 Fietsboek, ' + r.book + '</div>', { maxWidth: 270 });
+      m.on("click", function(){ setActive(r.n); });
+      markers[r.n] = m; bounds.push([r.lat, r.lng]);
+    });
+    var homeIcon = L.divIcon({ className:"", html:'<div class="pin home"><span>🏠</span></div>', iconSize:[34,34], iconAnchor:[17,34], popupAnchor:[0,-30] });
+    L.marker([40.4093, -3.7114], { icon:homeIcon, title:"Madrid" }).addTo(map)
+      .bindPopup("<h4>Madrid</h4><p>Hier woont de Cadeaugever. Startpunt, koffie en een bed.</p>");
+    bounds.push([40.4093, -3.7114]);
+    map.fitBounds(bounds, { padding:[30,30] });
+    setTimeout(function(){ map.invalidateSize(); map.fitBounds(bounds, { padding:[30,30] }); }, 300);
+  }
+
+  /* ---------- Confetti ---------- */
+  function confetti(count){
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var c = $("confetti"), ctx = c.getContext("2d"), dpr = window.devicePixelRatio || 1;
+    c.width = innerWidth * dpr; c.height = innerHeight * dpr; ctx.scale(dpr, dpr);
+    var colors = ["#c4492f","#e08a3c","#5f7445","#f2c14e","#2a2723","#ffffff"], parts = [];
+    for (var i = 0; i < count; i++) parts.push({
+      x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * .4,
+      w: 6 + Math.random() * 6, h: 8 + Math.random() * 8, vy: 2 + Math.random() * 3, vx: -1 + Math.random() * 2,
+      rot: Math.random() * 6, vr: -.1 + Math.random() * .2, col: colors[i % colors.length]
+    });
+    var t0 = performance.now();
+    (function frame(t){
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      parts.forEach(function(p){
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.col;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+      });
+      if (t - t0 < 3800) requestAnimationFrame(frame); else ctx.clearRect(0, 0, innerWidth, innerHeight);
+    })(t0);
+  }
+
+  /* ---------- Eerder al ontgrendeld? ---------- */
+  if (store.get("papa60-unlocked") === "1" && new Date() >= BIRTHDAY) unlock(false);
+})();
+</script>
+</body>
+</html>
