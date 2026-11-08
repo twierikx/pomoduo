@@ -629,10 +629,19 @@
       return;
     }
     map = L.map("map", { scrollWheelZoom:false, tap:true }).setView([41.2, -3.2], 6);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-      maxZoom: 13, subdomains: "abcd",
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    // Kaarttegels zonder API-key: OpenStreetMap, met CARTO als reserve als OSM niet laadt
+    var osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 13, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
+    var tileErrors = 0, switched = false;
+    osm.on("tileerror", function(){
+      if (switched || ++tileErrors < 4) return;
+      switched = true; map.removeLayer(osm);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 13, subdomains: "abcd",
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      }).addTo(map);
+    });
     var bounds = [];
     routes.forEach(function(r){
       var icon = L.divIcon({ className:"", html:'<div class="pin"><span>' + r.n + '</span></div>', iconSize:[34,34], iconAnchor:[17,34], popupAnchor:[0,-30] });
